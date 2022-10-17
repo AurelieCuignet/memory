@@ -1,5 +1,5 @@
 const api = {
-    apiRootUrl: 'http://memory.local',
+    apiRootUrl: 'https://your.url.here',
     fetchOptions: {
         // --- Toujours défini :
         // La méthode HTTP (GET, POST, etc.)
