@@ -8,6 +8,8 @@ const app = {
     cardTimeoutId: null,
     nbRounds: 0, // cette variable n'est qu'informative (non stockée en BDD), elle pourrait être utilisée pour départager des scores identiques pour la même difficulté
     username: '', 
+    startTime: null, // heure de démarrage de la partie
+    timerId: null,
 
     init: function() {
         console.log('initialisation');
@@ -107,6 +109,7 @@ const app = {
     startGame: function() {
         app.createCards();
         app.drawBoard();
+        app.startTimer(app.timer);
     },
 
     createCards: function() {
@@ -224,7 +227,7 @@ const app = {
             // on vérifie si le jeu est terminé 
             if(app.foundPairs == app.nbPairs) {
                 // si (compteur == nbPairs) alors la partie est gagnée
-                
+                app.gameEnding('victory');
             }
                 // sinon on laisse le joueur poursuivre
         }
@@ -234,6 +237,44 @@ const app = {
             // le setTimeout permet de laisser les cartes affichées, le temps d'être mémorisées (mais pas trop longtemps quand même)
             app.cardTimeoutId = setTimeout(app.reinitCards, 1000);
         }      
+    },
+
+     /**
+     * Cette fonction gère la fin de jeu et la possibilité de redémarrer une partie
+     * @param {String} result  "victory" ou "defeat"
+     */
+      gameEnding: function(result) {
+        
+        // si victoire
+        if(result === 'victory') {
+            // on affiche le temps, le nombre de coups, les félicitations du jury    
+            // on récupère le temps de jeu en soustrayant l'heure actuelle à l'heure stockée en début de partie
+            // on obtient une durée en millisecondes
+            const gameDuration =  Date.now() - app.startTime;
+            
+            // le timerId contient une valeur tant que le temps n'est pas écoulé, on l'utilise pour arrêter le chrono
+            if(app.timerId) clearInterval(app.timerId);
+            
+            // gameDuration sera stocké en BDD pour afficher ensuite les high scores. 
+            // On le stocke sous sa forme de millisecondes, pour pouvoir faire un tri lors de la requête à la BDD
+            //todo save score in BDD
+            
+            // et on formatera le résultat pour l'affichage comme ci-dessous
+            utils.displayMessage(`Partie terminée en  <b>${utils.toMinutesAndSeconds(gameDuration)}</b> (${app.nbRounds} coups joués)`);
+            alert(`Gagné ! Bravo ${app.username} 🥳`);
+
+        } else {
+             // si défaite, on affiche un message Perdu
+            utils.displayMessage(`Zut, plus de temps... 😕 <br>On réessaye ? 😁`);
+            // on enregistre le score en BDD, en utilisant le timer défini au début, la fonction setInterval() n'étant pas hyper précise...
+            // mais finalement, est-ce bien utile d'enregistrer les défaites ? 🤔
+            //todo save score in BDD
+        }
+
+        //dans tous les cas       
+        // on désactive le plateau de jeu (retrait de l'écouteur) pour ne pas pouvoir continuer la partie après la fin du temps
+        document.querySelector('#board').removeEventListener('mousedown', app.handleBoardClick);
+
     },
 
     /**
@@ -255,6 +296,35 @@ const app = {
         app.cardOne = null;
         app.cardTwo = null;
     },
+
+    startTimer: async function(timer) {
+        app.startTime = Date.now()
+        app.fillProgressBar(timer);
+    },
+
+    fillProgressBar: function(timer) {
+        // On calcule un taux de rafraichissement basé sur le timer, pour que la progression de la barre ne soit pas trop saccadée
+        timer = timer/10;
+
+        // on récupère le div qui sert à remplir la barre de progression, et on va modifier sa largeur en fonction du temps qui passe
+        const timerBar = document.querySelector('#timer > .progressbar > .filler');
+        let width = 0; //largeur initiale du div de remplissage
+        let delta; // va stocker la différence entre l'heure actuelle et l'heure à laquelle la partie a démarré
+        app.timerId = setInterval(updateBar, 10); // setInterval() permet d'éxécuter du code de manière récurrente, ici toutes les 10 ms
+        function updateBar() {
+            if (delta >= timer) {
+                // lorsque la différence entre la date de début et la date actuelle est égale au temps choisi pour la partie, on met fin à setInterval()
+                clearInterval(app.timerId);
+                app.gameEnding('defeat');
+                alert('Owwwwww 😭');       
+            } else {
+                delta = Math.floor((Date.now() - app.startTime)/10);
+                width = delta*100/timer;
+                if (width > 100) width = 100; // sert à éviter que la barre ne dépasse les 100%
+                timerBar.style.width = `${width}%`;
+            }
+        }
+    }
 }
 
 document.addEventListener('DOMContentLoaded', app.init);

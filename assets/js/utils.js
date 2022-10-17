@@ -27,4 +27,27 @@ const utils = {
             messageDiv.innerHTML = message;
         }
     },
+
+    /**
+     * Convertit une durée exprimée en millisecondes pour l'afficher sous la forme mm:ss.ms
+     * @param {number} milliseconds 
+     * @returns 
+     */
+     toMinutesAndSeconds: function(milliseconds) {
+        const totalSeconds = milliseconds/1000;
+        const mseconds = Math.round((milliseconds % 1000)/10);
+        const seconds = Math.floor(totalSeconds % 60);
+        const minutes = Math.floor(totalSeconds / 60);
+    
+        return `${utils.padTo2Digits(minutes)}:${utils.padTo2Digits(seconds)}.${mseconds}`;
+    },
+    
+    /**
+     * Rajoute un 0 initial si le chiffre est inférieur à 10
+     * @param {number} num 
+     * @returns 
+     */
+    padTo2Digits: function(num) {
+        return num.toString().padStart(2, '0');
+    }
 }
