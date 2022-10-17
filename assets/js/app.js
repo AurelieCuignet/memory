@@ -17,7 +17,7 @@ const app = {
 
         app.loadHighScores();
 
-        // on crée les listeners sur les boutons
+        // on crée les listeners sur les boutons et la liste de sélection
         const beforeGameForm = document.querySelector('#settings form.form');
         beforeGameForm.addEventListener('submit', app.handleSubmit);
 
@@ -48,6 +48,26 @@ const app = {
             alert(`Peux-tu vérifier ton petit nom avant de commencer s'il te plaît ? 🙏\nUniquement majuscules et minuscules non accentuées et chiffres, entre 3 et 20 caractères. Merci 😊`);
         }
         
+    },
+
+    handlePlayagainBtn: function(event) {
+        // cette fonction remet le jeu dans son état lors du chargement initial
+        //on masque la zone de jeu 
+        document.querySelector('#board').style.display = 'none';
+        document.querySelector('#timer').style.display = 'none';
+
+        // et le bouton Rejouer
+        //document.querySelector('#playagain').style.display = 'none';
+        event.target.style.display = 'none';
+        
+        //on réaffiche le formulaire de choix de difficulté et les highScores
+        document.querySelector('#settings').style.display = 'flex';
+
+    },
+
+    handleDifficultySelect: function(event) {
+        // on charge les high scores correspondant à la difficulté sélectionnée, histoire de se motiver !
+        app.updateHighScores(event.target.value);
     },
 
     initData: function(username, difficulty) {
@@ -246,11 +266,11 @@ const app = {
         }      
     },
 
-     /**
+    /**
      * Cette fonction gère la fin de jeu et la possibilité de redémarrer une partie
      * @param {String} result  "victory" ou "defeat"
      */
-      gameEnding: function(result) {
+    gameEnding: function(result) {
         
         // si victoire
         if(result === 'victory') {
@@ -281,7 +301,8 @@ const app = {
         //dans tous les cas       
         // on désactive le plateau de jeu (retrait de l'écouteur) pour ne pas pouvoir continuer la partie après la fin du temps
         document.querySelector('#board').removeEventListener('mousedown', app.handleBoardClick);
-
+        // on propose de relancer une partie (affichage du bouton Rejouer)
+        document.querySelector('#playagain').style.display = 'block';
     },
 
     /**
@@ -304,7 +325,7 @@ const app = {
         app.cardTwo = null;
     },
 
-    startTimer: async function(timer) {
+    startTimer: function(timer) {
         app.startTime = Date.now()
         app.fillProgressBar(timer);
     },
