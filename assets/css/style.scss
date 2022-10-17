@@ -1,0 +1,115 @@
+$mainColor: #008080;
+$darkMainColor: darken($mainColor, 10%);
+$lightMainColor: lighten($mainColor, 10%);
+$darkColor: #00100B;
+$lightColor: #FBFBFF;
+
+body {
+    font-family: 'Courier New', Helvetica, sans-serif;
+    font-size: 1.2em;
+    width: 1000px;
+    margin: auto;
+    background-color: $darkColor;
+    color: $lightColor;
+}
+
+button,
+input,
+select {
+    font-family: 'Courier New', Helvetica, sans-serif;
+    font-size: 1em;
+}
+
+header,
+footer {
+    margin: 1em 0 2em;
+}
+
+h1 {
+    font-size: 2em;
+}
+
+h2 {
+    font-size: 1.5em;
+}
+
+h1, h2, button, label {
+    font-weight: bold;
+}
+
+button {
+	box-shadow:inset 0px 1px 0px 0px $darkMainColor;
+    background:linear-gradient(to bottom, $mainColor 5%, $darkMainColor 100%);
+	background-color:$mainColor;
+	border-radius:5px;
+	border:1px solid $darkMainColor;
+	display:inline-block;
+	cursor:pointer;
+	color:$lightColor;
+	padding:6px 24px;
+	text-decoration:none;
+    margin-top: 1em;
+
+    &:hover {
+        background:linear-gradient(to bottom, $lightMainColor 5%, $mainColor 100%);
+        background-color:$lightMainColor;
+    }
+
+    &:active {
+        position:relative;
+        top:2px;
+    }
+}
+
+/* éléments masqués au chargement de la page */
+#board, 
+#timer, 
+#playagain {
+    display: none;
+}
+
+#main-title {
+    text-align: center;
+}
+
+#settings,
+#board {
+    display: flex;
+    justify-content: space-between;
+}
+
+.form {
+    max-width: 70%;
+    p {
+        margin: 0.3em 0 0.6em;
+        font-size: 1rem;
+        color: $lightMainColor;
+    }
+}
+
+#scores {
+    padding-left: 15px;
+    text-align: right;
+    h2 > span {
+        display: block;
+        font-weight: normal;
+        font-size: 1rem;
+        color: $lightMainColor;
+    }
+}
+
+#board {
+    max-width: 850px;
+    flex-wrap: wrap;
+    gap: 15px;
+    margin: auto;
+}
+
+.card {
+    width: 100px;
+    height: 100px;
+    background: url(./../images/cards.png) 0 100px no-repeat, radial-gradient(circle, rgba(39,199,199,1) 0%, rgba(0,0,0,1) 125%);
+    box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2);
+    border: 1px solid $lightColor;
+    border-radius: 5px;
+}
