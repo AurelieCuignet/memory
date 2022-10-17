@@ -1,3 +1,7 @@
+vendor
+
 # SASS recréera ces fichiers à la compilation
 assets/css/style.css.map
 assets/css/style.css
+# Fichier de config
+app/config.ini
