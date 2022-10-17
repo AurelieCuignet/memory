@@ -25,7 +25,7 @@ abstract class CoreController
     public function renderJson($data)
     {
         header('Content-Type: application/json');
-        header("Access-Control-Allow-Origin: http://memory-game.local");
+        header("Access-Control-Allow-Origin: http://memory.local");
         echo json_encode($data);
     }
 }

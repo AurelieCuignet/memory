@@ -10,13 +10,20 @@ const app = {
     username: '', 
     startTime: null, // heure de démarrage de la partie
     timerId: null,
+    highScores: [],
 
     init: function() {
         console.log('initialisation');
 
+        app.loadHighScores();
+
         // on crée les listeners sur les boutons
         const beforeGameForm = document.querySelector('#settings form.form');
         beforeGameForm.addEventListener('submit', app.handleSubmit);
+
+        // on peut faire la même chose en une seule ligne
+        document.querySelector('#playagain').addEventListener('click', app.handlePlayagainBtn);
+        document.querySelector('#difficulty').addEventListener('change', app.handleDifficultySelect);
          
     },
 
@@ -257,7 +264,7 @@ const app = {
             
             // gameDuration sera stocké en BDD pour afficher ensuite les high scores. 
             // On le stocke sous sa forme de millisecondes, pour pouvoir faire un tri lors de la requête à la BDD
-            //todo save score in BDD
+            app.saveScore(gameDuration);
             
             // et on formatera le résultat pour l'affichage comme ci-dessous
             utils.displayMessage(`Partie terminée en  <b>${utils.toMinutesAndSeconds(gameDuration)}</b> (${app.nbRounds} coups joués)`);
@@ -268,7 +275,7 @@ const app = {
             utils.displayMessage(`Zut, plus de temps... 😕 <br>On réessaye ? 😁`);
             // on enregistre le score en BDD, en utilisant le timer défini au début, la fonction setInterval() n'étant pas hyper précise...
             // mais finalement, est-ce bien utile d'enregistrer les défaites ? 🤔
-            //todo save score in BDD
+            app.saveScore(app.timer);
         }
 
         //dans tous les cas       
@@ -323,6 +330,112 @@ const app = {
                 if (width > 100) width = 100; // sert à éviter que la barre ne dépasse les 100%
                 timerBar.style.width = `${width}%`;
             }
+        }
+    },
+
+    saveScore: function(totalTime) {
+        // un enregistrement en BDD comporte id/username/total_time/difficulty
+        // l'id est une clé primaire en auto-incrément, on n'a pas besoin de s'en occuper
+        // il suffit donc d'envoyer les autres infos
+        // dans une version suivante, le nombre de coups joués/les paires trouvées pourraient être ajoutés à la BDD
+        // ça donnerait un intérêt à sauvegarder aussi les scores des défaites
+        const data = {
+            username: app.username,
+            total_time: totalTime,
+            difficulty: app.difficulty
+        }
+
+        // on prépare les entêtes HTTP (headers) de la requête
+        // afin de spécifier que les données sont en JSON
+        const httpHeaders = new Headers();
+        httpHeaders.append("Content-Type", "application/json");
+
+        // on modifie les options pour le fetch
+        const fetchOptions = {
+            method: 'POST',
+            mode: 'cors',
+            cache: 'no-cache',
+            // on ajoute les headers dans les options
+            headers: httpHeaders,
+            // on ajoute les données, encodées en JSON, dans le corps de la requête
+            body: JSON.stringify(data)
+        }
+
+        // on exécute la requête HTTP avec fetch
+        fetch(api.apiRootUrl + '/score/add', fetchOptions).then(
+            function(jsonResponse) {
+                // si HTTP status code = 200 --> OK
+                if (jsonResponse.status == 200) {
+                    jsonResponse.json().then(data => {
+                        //alert('ajout effectué');
+                        console.log('%c app.js #394 || AJOUT OK', 'background:teal;color:#fff;font-size: 15px;', data);
+                        // si la modif a été effectuée sans pb, on met à jour le tableau des scores 
+                        // pour éviter de refaire un appel à la BDD, on utilise le retour disponible dans data
+                        // pour mettre à jour le tableau de highScores : cela nécessite de le trier à nouveau pour que le score ajouté
+                        // soit au bon endroit. Ensuite, on appelle la méthode updateHighScores() pour mettre à jour le DOM, 
+                        // en affichant les scores de la difficulté courante
+                        app.highScores.push(data);
+                        app.highScores.sort((a, b) => a.total_time - b.total_time);
+                        app.updateHighScores(app.difficulty);
+                    });
+                    
+                } else {
+                    console.log('%c app.js #403 || ECHEC DE L\'AJOUT', 'background:crimson;color:#fff;font-size: 15px;', );
+                }
+                
+            }            
+        );
+
+    },
+
+    /**
+     * Charge les scores depuis la BDD et les met dans le tableau de highScores
+     */
+    loadHighScores: function() {
+        fetch(api.apiRootUrl + '/score/list', api.fetchOptions)
+        .then((data) => data.json()).then(
+            function(jsonResponse) {
+                app.highScores = jsonResponse;
+                app.updateHighScores();
+            }
+        );
+    },
+
+    /**
+     * Cette fonction met à jour l'affichage des scores en fonction du contenu du tableau highScores et de la difficulté sélectionnée
+     */
+    updateHighScores: function(difficulty = 0) {
+        // on sélectionne la liste affichant les scores puis on la vide
+        const scoresList = document.querySelector('#scores ul');
+        scoresList.innerHTML = "";
+        let filteredScores;
+
+        //si une difficulté est sélectionnée, on filtre d'abord le tableau de scores avant de générer l'affichage avec la fonction native filter()
+        if (difficulty != 0) {
+            filteredScores = Array.prototype.filter.call(app.highScores, (score) => score.difficulty == difficulty);
+        } else {
+            filteredScores = app.highScores;
+        }
+
+        // on veut seulement les 10 meilleurs scores
+        // on utilise un forEach au lieu d'une boucle for, car filteredScores n'est pas vraiment un tableau classique, 
+        // et utiliser les fonctions de tableau dessus provoquent des erreurs (même si ça semble fonctionner)
+        // on utilise donc un compteur externe pour ne prendre que les 10 premiers scores
+        let best10 = 0;
+        filteredScores.forEach(function(score){
+            if (best10 < 10) {
+                const liElt = document.createElement('li');
+                liElt.innerHTML = `<span class="username">${score.username}</span> | ${utils.toMinutesAndSeconds(score.total_time)} (${score.difficulty})`;
+                scoresList.appendChild(liElt);
+                best10++;
+            }
+          });
+
+        // cas où il n'y a pas de score enregistré pour la difficulté sélectionnée (message "aucun score enregistré")
+        if (filteredScores.length == 0) {
+            const liElt = document.createElement('li');
+            liElt.innerHTML = `Aucun score enregistré pour ce niveau de difficulté !`;
+            scoresList.appendChild(liElt);
         }
     }
 }

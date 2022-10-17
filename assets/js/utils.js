@@ -33,7 +33,7 @@ const utils = {
      * @param {number} milliseconds 
      * @returns 
      */
-     toMinutesAndSeconds: function(milliseconds) {
+    toMinutesAndSeconds: function(milliseconds) {
         const totalSeconds = milliseconds/1000;
         const mseconds = Math.round((milliseconds % 1000)/10);
         const seconds = Math.floor(totalSeconds % 60);
