@@ -21,3 +21,9 @@ It would be better to have a dedicated config file for these, I might take car o
 You can try this game live and play a bit [here](https://memory.kyborash.com/). It's only available in French for now, it might be translated in the future.
 
 Hope you'll enjoy it, have fun ! 😊
+
+## Future upgrades
+
+This project is not mobile-friendly yet (what a shame, I know...). I plan to fix this in the future 🙏 In the meantime, you'll have a better experiment on desktop 🖥️ / laptop 💻
+
+Rounds per game and matching cards are tracked in the game but not saved for now. Next version of the game will add these to the scores in DB, and use them to order high scores.
