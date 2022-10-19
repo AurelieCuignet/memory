@@ -14,7 +14,7 @@ Just one more step: communication between frontend and backend is handled by fet
 * #28 in _app/Controllers/CoreController.php_: `header("Access-Control-Allow-Origin: https://your.url.here");`
 * #2 in _assets/js/api.js_: `apiRootUrl: 'https://your.url.here',`
 
-It would be better to have a dedicated config file for these, I might take car of this later 🙃
+It would be better to have a dedicated config file for these, I might take care of this later 🙃
 
 ## Use
 
